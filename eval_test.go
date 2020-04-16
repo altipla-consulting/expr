@@ -11,8 +11,9 @@ import (
 
 func TestEvalSQL(t *testing.T) {
 	filters := Filters{
-		IDParam("foo"),
-		EnumParam("bar", pb.FooEnum_value),
+		IDParam("id"),
+		EnumParam("enum", pb.FooEnum_value),
+		TimestampParam("ts"),
 	}
 
 	tests := []struct {
@@ -21,24 +22,29 @@ func TestEvalSQL(t *testing.T) {
 		vals     []interface{}
 	}{
 		{
-			query:    `foo=3`,
-			expected: `(foo = ?)`,
+			query:    `id=3`,
+			expected: `(id = ?)`,
 			vals:     []interface{}{3},
 		},
 		{
-			query:    `bar=FOOENUM_FIRST`,
-			expected: `(bar = ?)`,
+			query:    `enum=FOOENUM_FIRST`,
+			expected: `(enum = ?)`,
 			vals:     []interface{}{"FOOENUM_FIRST"},
 		},
 		{
-			query:    `foo!=4 bar=FOOENUM_FIRST`,
-			expected: `(foo != ?) AND (bar = ?)`,
+			query:    `id!=4 enum=FOOENUM_FIRST`,
+			expected: `(id != ?) AND (enum = ?)`,
 			vals:     []interface{}{4, "FOOENUM_FIRST"},
 		},
 		{
-			query:    `-foo=3`,
-			expected: `(NOT foo = ?)`,
+			query:    `-id=3`,
+			expected: `(NOT id = ?)`,
 			vals:     []interface{}{3},
+		},
+		{
+			query:    `ts:*`,
+			expected: `(ts IS NOT NULL)`,
+			vals:     []interface{}{},
 		},
 	}
 	for i, test := range tests {
