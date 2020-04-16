@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"fmt"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -115,26 +116,26 @@ func (evaler *Evaler) ToSQL() (string, []interface{}, error) {
 	var vals []interface{}
 
 	for _, expr := range evaler.root.Nodes {
-		val, err := evaler.filters[expr.Field.Name].sqlValue(expr.Val)
-		if err != nil {
-			return "", nil, errors.Trace(err)
-		}
-
-		var parts []string
-		if expr.Negative {
-			parts = append(parts, "NOT")
-		}
-		parts = append(parts, expr.Field.Name)
 		switch expr.Op.Val {
+		case parse.OpExists:
+			conds = append(conds, fmt.Sprintf("(%s IS NOT NULL)", expr.Field.Name))
+
 		case parse.OpEqual, parse.OpNotEqual:
-			parts = append(parts, string(expr.Op.Val))
+			val, err := evaler.filters[expr.Field.Name].sqlValue(expr.Val)
+			if err != nil {
+				return "", nil, errors.Trace(err)
+			}
+
+			var not string
+			if expr.Negative {
+				not = "NOT "
+			}
+			conds = append(conds, fmt.Sprintf("(%s%s %s ?)", not, expr.Field.Name, expr.Op.Val))
+			vals = append(vals, val)
+
 		default:
 			return "", nil, errors.Errorf("cannot use operator in SQL queries: %v", expr.Op.Val)
 		}
-		parts = append(parts, "?")
-
-		conds = append(conds, "("+strings.Join(parts, " ")+")")
-		vals = append(vals, val)
 	}
 
 	return strings.Join(conds, " AND "), vals, nil

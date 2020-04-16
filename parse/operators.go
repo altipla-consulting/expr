@@ -6,10 +6,12 @@ const (
 	OpEqual    = Operator("=")
 	OpNotEqual = Operator("!=")
 	OpContains = Operator(":")
+	OpExists   = Operator(":*")
 )
 
 var allOperators = []Operator{
 	OpEqual,
 	OpNotEqual,
 	OpContains,
+	OpExists,
 }

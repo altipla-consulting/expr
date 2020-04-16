@@ -18,7 +18,6 @@ const (
 	itemNumber
 	itemConstant
 	itemAnd
-	itemHasContent
 	itemNot
 )
 
@@ -47,8 +46,6 @@ func (i item) String() string {
 		return fmt.Sprintf("const:%q", i.val)
 	case itemAnd:
 		return " AND "
-	case itemHasContent:
-		return "*"
 	case itemNot:
 		return "NOT "
 	}
@@ -166,16 +163,17 @@ func lexField(l *lexer) stateFn {
 
 func lexOperator(l *lexer) stateFn {
 	l.ignoreSpaces()
-	l.acceptRun(":<=!>")
+	l.acceptRun(":<=!>*")
 
-	switch op := l.input[l.start:l.pos]; op {
-	case "":
+	if l.start == l.pos {
 		return l.errorf("empty operator")
-	case ":", ">", "<", ">=", "<=", "=", "!=":
-		l.emit(itemOperator)
-	default:
-		return l.errorf("unknown operator: %q: %s", op, l.input[l.start:])
 	}
+
+	if l.input[l.start:l.pos] == ":*" {
+		l.emit(itemOperator)
+		return lexAnd
+	}
+	l.emit(itemOperator)
 
 	return lexValue
 }
@@ -188,8 +186,6 @@ func lexValue(l *lexer) stateFn {
 		return lexString
 	case isDigit(r):
 		return lexNumber
-	case r == '*':
-		return lexHasContent
 	default:
 		return lexConstant
 	}
@@ -226,13 +222,6 @@ func lexNumber(l *lexer) stateFn {
 	}
 
 	l.emit(itemNumber)
-	return lexAnd
-}
-
-func lexHasContent(l *lexer) stateFn {
-	l.next()
-	l.ignore()
-	l.emit(itemHasContent)
 	return lexAnd
 }
 

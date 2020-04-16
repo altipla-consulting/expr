@@ -24,7 +24,6 @@ const (
 	NodeConstant
 	NodeAnd
 	NodeExpr
-	NodeHasContent
 )
 
 type FieldNode struct {
@@ -83,14 +82,6 @@ func (a *AndNode) String() string {
 		s[i] = node.String()
 	}
 	return strings.Join(s, " ")
-}
-
-type HasContentNode struct {
-	NodeType
-}
-
-func (c *HasContentNode) String() string {
-	return "*"
 }
 
 type ExprNode struct {

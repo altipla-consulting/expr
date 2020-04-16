@@ -147,11 +147,6 @@ func (p *parser) parseExpr() *ExprNode {
 			Name:     tok.val,
 		}
 
-	case itemHasContent:
-		expr.Val = &HasContentNode{
-			NodeType: NodeHasContent,
-		}
-
 	default:
 		p.unexpected(tok, "expression value")
 	}
