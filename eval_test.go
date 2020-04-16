@@ -2,6 +2,7 @@ package expr
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -60,8 +61,7 @@ func TestMatcher(t *testing.T) {
 		IDParam("foo"),
 	}
 
-	query := `foo=3`
-	matcher, err := filters.Matcher(query)
+	matcher, err := filters.Matcher(`foo=3`)
 	require.NoError(t, err)
 
 	data := map[string]interface{}{
@@ -80,8 +80,7 @@ func TestMatcherEnum(t *testing.T) {
 		EnumParam("foo", pb.FooEnum_value),
 	}
 
-	query := `foo=FOOENUM_FIRST`
-	matcher, err := filters.Matcher(query)
+	matcher, err := filters.Matcher(`foo=FOOENUM_FIRST`)
 	require.NoError(t, err)
 
 	data := map[string]interface{}{
@@ -92,5 +91,22 @@ func TestMatcherEnum(t *testing.T) {
 	data = map[string]interface{}{
 		"foo": pb.FooEnum_FOOENUM_SECOND,
 	}
+	require.False(t, matcher(data))
+}
+
+func TestMatcherTimestampExists(t *testing.T) {
+	filters := Filters{
+		TimestampParam("foo"),
+	}
+
+	matcher, err := filters.Matcher(`foo:*`)
+	require.NoError(t, err)
+
+	data := map[string]interface{}{
+		"foo": time.Now(),
+	}
+	require.True(t, matcher(data))
+
+	data = make(map[string]interface{})
 	require.False(t, matcher(data))
 }

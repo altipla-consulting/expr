@@ -103,6 +103,7 @@ func (p *parser) parseOperator() *OperatorNode {
 }
 
 func (p *parser) parseExpr() *ExprNode {
+	// Lee el nombre del campo, posiblemente con una negativa delante.
 	var negative bool
 	tok := p.next()
 	switch tok.typ {
@@ -124,6 +125,12 @@ func (p *parser) parseExpr() *ExprNode {
 		Negative: negative,
 	}
 
+	// Operadores que no tienen argumentos adicionales.
+	if expr.Op.Val == OpExists {
+		return expr
+	}
+
+	// Operadores con argumentos de varios posibles tipos.
 	switch tok := p.next(); tok.typ {
 	case itemNumber:
 		val, err := strconv.ParseInt(tok.val, 10, 64)

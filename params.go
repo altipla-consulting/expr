@@ -79,3 +79,13 @@ func BoolParam(name string, opts ...ParamOption) *Filter {
 		},
 	}
 }
+
+func TimestampParam(name string, opts ...ParamOption) *Filter {
+	return &Filter{
+		name:      name,
+		operators: []parse.Operator{parse.OpExists},
+		eval: func(value parse.Node) (interface{}, error) {
+			return nil, nil
+		},
+	}
+}
