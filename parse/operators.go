@@ -2,16 +2,14 @@ package parse
 
 type Operator string
 
-func (op Operator) ToSQL() string {
-	return string(op)
-}
-
 const (
 	OpEqual    = Operator("=")
 	OpNotEqual = Operator("!=")
+	OpContains = Operator(":")
 )
 
 var allOperators = []Operator{
 	OpEqual,
 	OpNotEqual,
+	OpContains,
 }

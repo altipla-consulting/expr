@@ -1,0 +1,11 @@
+
+syntax = "proto3";
+
+package expr.testdata.foo;
+
+enum FooEnum {
+  FOOENUM_UNKNOWN = 0;
+
+  FOOENUM_FIRST = 1;
+  FOOENUM_SECOND = 2;
+}

@@ -103,8 +103,14 @@ func (p *parser) parseOperator() *OperatorNode {
 }
 
 func (p *parser) parseExpr() *ExprNode {
+	var negative bool
 	tok := p.next()
-	if tok.typ != itemField {
+	switch tok.typ {
+	case itemField:
+	case itemNot:
+		negative = true
+		tok = p.next()
+	default:
 		p.unexpected(tok, "expression field")
 	}
 
@@ -114,7 +120,8 @@ func (p *parser) parseExpr() *ExprNode {
 			NodeType: NodeField,
 			Name:     tok.val,
 		},
-		Op: p.parseOperator(),
+		Op:       p.parseOperator(),
+		Negative: negative,
 	}
 
 	switch tok := p.next(); tok.typ {

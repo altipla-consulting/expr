@@ -12,3 +12,6 @@ update-deps:
 
 test:
 	go test ./...
+
+protos:
+	actools protoc --go_out=paths=source_relative:. ./testdata/foo/foo.proto

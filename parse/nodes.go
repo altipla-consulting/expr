@@ -95,11 +95,16 @@ func (c *HasContentNode) String() string {
 
 type ExprNode struct {
 	NodeType
-	Field *FieldNode
-	Op    *OperatorNode
-	Val   Node
+	Field    *FieldNode
+	Op       *OperatorNode
+	Val      Node
+	Negative bool
 }
 
 func (e ExprNode) String() string {
-	return e.Field.String() + e.Op.String() + e.Val.String()
+	s := e.Field.String() + e.Op.String() + e.Val.String()
+	if e.Negative {
+		return "NOT " + s
+	}
+	return s
 }

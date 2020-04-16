@@ -21,7 +21,7 @@ func IDParam(name string, opts ...ParamOption) *Filter {
 	return &Filter{
 		name:      name,
 		operators: []parse.Operator{parse.OpEqual, parse.OpNotEqual},
-		eval: func(value parse.Node) (interface{}, error) {
+		sqlValue: func(value parse.Node) (interface{}, error) {
 			switch v := value.(type) {
 			case *parse.NumberNode:
 				if v.Val < 0 {
@@ -40,7 +40,7 @@ func EnumParam(name string, values map[string]int32, opts ...ParamOption) *Filte
 	return &Filter{
 		name:      name,
 		operators: []parse.Operator{parse.OpEqual, parse.OpNotEqual},
-		eval: func(value parse.Node) (interface{}, error) {
+		sqlValue: func(value parse.Node) (interface{}, error) {
 			switch v := value.(type) {
 			case *parse.ConstantNode:
 				if strings.HasSuffix(v.Name, "_UNKNOWN") {
@@ -62,7 +62,7 @@ func BoolParam(name string, opts ...ParamOption) *Filter {
 	return &Filter{
 		name:      name,
 		operators: []parse.Operator{parse.OpEqual, parse.OpNotEqual},
-		eval: func(value parse.Node) (interface{}, error) {
+		sqlValue: func(value parse.Node) (interface{}, error) {
 			switch v := value.(type) {
 			case *parse.ConstantNode:
 				switch strings.ToLower(v.Name) {

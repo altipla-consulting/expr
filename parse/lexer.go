@@ -19,6 +19,7 @@ const (
 	itemConstant
 	itemAnd
 	itemHasContent
+	itemNot
 )
 
 const eof = -1
@@ -48,6 +49,8 @@ func (i item) String() string {
 		return " AND "
 	case itemHasContent:
 		return "*"
+	case itemNot:
+		return "NOT "
 	}
 	panic(fmt.Sprintf("should not reach here: %v", i.typ))
 }
@@ -145,6 +148,12 @@ func lex(input string) *lexer {
 
 func lexField(l *lexer) stateFn {
 	l.ignoreSpaces()
+
+	if r := l.peek(); r == '-' {
+		l.next()
+		l.ignore()
+		l.emit(itemNot)
+	}
 
 	l.acceptRun("abcdefghijklmnopqrstuvwxyz1234567890-.")
 	if l.start == l.pos {
