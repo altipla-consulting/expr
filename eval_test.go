@@ -8,7 +8,7 @@ import (
 	pb "github.com/altipla-consulting/expr/testdata/foo"
 )
 
-func TestToSQL(t *testing.T) {
+func TestEvalSQL(t *testing.T) {
 	filters := Filters{
 		IDParam("foo"),
 		EnumParam("bar", pb.FooEnum_value),
@@ -19,11 +19,6 @@ func TestToSQL(t *testing.T) {
 		expected string
 		vals     []interface{}
 	}{
-		{
-			query:    ``,
-			expected: ``,
-			vals:     nil,
-		},
 		{
 			query:    `foo=3`,
 			expected: `(foo = ?)`,
@@ -46,32 +41,56 @@ func TestToSQL(t *testing.T) {
 		},
 	}
 	for i, test := range tests {
-		evaler, err := filters.Evaler(test.query)
+		root, filters, err := filters.parseQuery(test.query)
 		require.NoError(t, err)
-		sql, vals, err := evaler.ToSQL()
+		cond, err := evalSQL(root, filters)
 		require.NoError(t, err)
 
-		require.Equal(t, sql, test.expected, "test %v: [%v]", i, test.query)
+		require.Equal(t, cond.sql, test.expected, "test %v: [%v]", i, test.query)
 
-		require.Len(t, vals, len(test.vals))
-		for j, val := range vals {
+		require.Len(t, cond.vals, len(test.vals))
+		for j, val := range cond.vals {
 			require.EqualValues(t, val, test.vals[j], "test %v, value %v: [%v]", i, j, test.query)
 		}
 	}
 }
 
-func TestMatchSuccess(t *testing.T) {
+func TestMatcher(t *testing.T) {
 	filters := Filters{
 		IDParam("foo"),
 	}
 
 	query := `foo=3`
-	evaler, err := filters.Evaler(query)
+	matcher, err := filters.Matcher(query)
 	require.NoError(t, err)
 
-	match, err := evaler.Match(map[string]interface{}{
+	data := map[string]interface{}{
 		"foo": int64(3),
-	})
+	}
+	require.True(t, matcher(data))
+
+	data = map[string]interface{}{
+		"foo": int64(5),
+	}
+	require.False(t, matcher(data))
+}
+
+func TestMatcherEnum(t *testing.T) {
+	filters := Filters{
+		EnumParam("foo", pb.FooEnum_value),
+	}
+
+	query := `foo=FOOENUM_FIRST`
+	matcher, err := filters.Matcher(query)
 	require.NoError(t, err)
-	require.True(t, match)
+
+	data := map[string]interface{}{
+		"foo": pb.FooEnum_FOOENUM_FIRST,
+	}
+	require.True(t, matcher(data))
+
+	data = map[string]interface{}{
+		"foo": pb.FooEnum_FOOENUM_SECOND,
+	}
+	require.False(t, matcher(data))
 }

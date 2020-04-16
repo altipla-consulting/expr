@@ -30,13 +30,19 @@ func Eq(name string, value interface{}) BuildField {
 	return func() string {
 		switch v := value.(type) {
 		case enumValue:
-			return fmt.Sprintf("%s=%s", name, v.String())
+			return fmt.Sprintf("%v=%v", name, v.String())
 
-		case int64, int32, int:
-			return fmt.Sprintf("%s=%d", name, value)
+		case int64, int32, int, bool:
+			return fmt.Sprintf("%v=%v", name, value)
 
 		default:
 			panic(fmt.Sprintf("unsupported type in query builder for field %s: %T", name, value))
 		}
+	}
+}
+
+func Exists(name string) BuildField {
+	return func() string {
+		return name + ":*"
 	}
 }
