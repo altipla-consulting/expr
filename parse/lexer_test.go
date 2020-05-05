@@ -68,6 +68,15 @@ func TestLexer(t *testing.T) {
 				{itemEOF, ""},
 			},
 		},
+		{
+			query: `-foo:*`,
+			expected: []item{
+				{itemAnd, ""},
+				{itemNot, ""},
+				{itemField, "foo"}, {itemOperator, ":*"},
+				{itemEOF, ""},
+			},
+		},
 		// {
 		//  query: `NOT foo:3`,
 		//  expected: []item{

@@ -98,7 +98,11 @@ func evalSQL(root *parse.AndNode, filters map[string]*Filter) (*sqlCondition, er
 	for _, expr := range root.Nodes {
 		switch expr.Op.Val {
 		case parse.OpExists:
-			conds = append(conds, fmt.Sprintf("(%s IS NOT NULL)", expr.Field.Name))
+			if expr.Negative {
+				conds = append(conds, fmt.Sprintf("(%s IS NULL)", expr.Field.Name))
+			} else {
+				conds = append(conds, fmt.Sprintf("(%s IS NOT NULL)", expr.Field.Name))
+			}
 
 		case parse.OpEqual, parse.OpNotEqual:
 			val, err := filters[expr.Field.Name].eval(expr.Val)

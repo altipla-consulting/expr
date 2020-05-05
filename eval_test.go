@@ -46,6 +46,11 @@ func TestEvalSQL(t *testing.T) {
 			expected: `(ts IS NOT NULL)`,
 			vals:     []interface{}{},
 		},
+		{
+			query:    `-ts:*`,
+			expected: `(ts IS NULL)`,
+			vals:     []interface{}{},
+		},
 	}
 	for i, test := range tests {
 		root, filters, err := filters.parseQuery(test.query)
