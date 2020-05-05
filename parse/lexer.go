@@ -152,7 +152,7 @@ func lexField(l *lexer) stateFn {
 		l.emit(itemNot)
 	}
 
-	l.acceptRun("abcdefghijklmnopqrstuvwxyz1234567890-.")
+	l.acceptRun("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.")
 	if l.start == l.pos {
 		return l.errorf("field name: %q", l.input[l.start:])
 	}

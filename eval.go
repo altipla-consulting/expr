@@ -3,6 +3,7 @@ package expr
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -99,9 +100,9 @@ func evalSQL(root *parse.AndNode, filters map[string]*Filter) (*sqlCondition, er
 		switch expr.Op.Val {
 		case parse.OpExists:
 			if expr.Negative {
-				conds = append(conds, fmt.Sprintf("(%s IS NULL)", expr.Field.Name))
+				conds = append(conds, fmt.Sprintf("(%s IS NULL)", sqlizeName(expr.Field.Name)))
 			} else {
-				conds = append(conds, fmt.Sprintf("(%s IS NOT NULL)", expr.Field.Name))
+				conds = append(conds, fmt.Sprintf("(%s IS NOT NULL)", sqlizeName(expr.Field.Name)))
 			}
 
 		case parse.OpEqual, parse.OpNotEqual:
@@ -114,7 +115,7 @@ func evalSQL(root *parse.AndNode, filters map[string]*Filter) (*sqlCondition, er
 			if expr.Negative {
 				not = "NOT "
 			}
-			conds = append(conds, fmt.Sprintf("(%s%s %s ?)", not, expr.Field.Name, expr.Op.Val))
+			conds = append(conds, fmt.Sprintf("(%s%s %s ?)", not, sqlizeName(expr.Field.Name), expr.Op.Val))
 			vals = append(vals, val)
 
 		default:
@@ -130,6 +131,17 @@ func evalSQL(root *parse.AndNode, filters map[string]*Filter) (*sqlCondition, er
 		sql:  strings.Join(conds, " AND "),
 		vals: vals,
 	}, nil
+}
+
+func sqlizeName(s string) string {
+	var result []rune
+	for _, r := range s {
+		if unicode.IsUpper(r) {
+			result = append(result, '_')
+		}
+		result = append(result, unicode.ToLower(r))
+	}
+	return string(result)
 }
 
 type Matcher func(value map[string]interface{}) bool

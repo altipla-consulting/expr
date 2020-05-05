@@ -14,6 +14,7 @@ func TestEvalSQL(t *testing.T) {
 		IDParam("id"),
 		EnumParam("enum", pb.FooEnum_value),
 		TimestampParam("ts"),
+		BoolParam("boolUppercase"),
 	}
 
 	tests := []struct {
@@ -50,6 +51,11 @@ func TestEvalSQL(t *testing.T) {
 			query:    `-ts:*`,
 			expected: `(ts IS NULL)`,
 			vals:     []interface{}{},
+		},
+		{
+			query:    `boolUppercase=TRUE`,
+			expected: `(bool_uppercase = ?)`,
+			vals:     []interface{}{true},
 		},
 	}
 	for i, test := range tests {
