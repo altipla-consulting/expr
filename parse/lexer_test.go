@@ -85,6 +85,14 @@ func TestLexer(t *testing.T) {
 				{itemEOF, ""},
 			},
 		},
+		{
+			query: `foo=true`,
+			expected: []item{
+				{itemAnd, ""},
+				{itemField, "foo"}, {itemOperator, "="}, {itemConstant, "true"},
+				{itemEOF, ""},
+			},
+		},
 		// {
 		//  query: `NOT foo:3`,
 		//  expected: []item{

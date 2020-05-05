@@ -226,7 +226,7 @@ func lexNumber(l *lexer) stateFn {
 }
 
 func lexConstant(l *lexer) stateFn {
-	l.acceptRun("ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789")
+	l.acceptRun("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789")
 
 	if l.start == l.pos {
 		return l.errorf("unknown constant: %q", l.input[l.start:])

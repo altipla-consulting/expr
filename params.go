@@ -71,7 +71,7 @@ func BoolParam(name string, opts ...ParamOption) *Filter {
 				case "false":
 					return false, nil
 				}
-				return false, status.Errorf(codes.InvalidArgument, "boolean fields should be true or false: %v: %s", name, value)
+				return false, status.Errorf(codes.InvalidArgument, "boolean fields should be either true or false: %v: %s", name, value)
 
 			default:
 				return false, status.Errorf(codes.InvalidArgument, "boolean fields can only be filtered with booleans: %v: %s", name, value)

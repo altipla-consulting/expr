@@ -57,6 +57,11 @@ func TestEvalSQL(t *testing.T) {
 			expected: `(bool_uppercase = ?)`,
 			vals:     []interface{}{true},
 		},
+		{
+			query:    `boolUppercase=true`,
+			expected: `(bool_uppercase = ?)`,
+			vals:     []interface{}{true},
+		},
 	}
 	for i, test := range tests {
 		root, filters, err := filters.parseQuery(test.query)
