@@ -53,6 +53,14 @@ func (s *StringNode) String() string {
 	return s.Quoted
 }
 
+func (s *StringNode) Unquoted() string {
+	u, err := strconv.Unquote(s.Quoted)
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
+
 type NumberNode struct {
 	NodeType
 	Val int64

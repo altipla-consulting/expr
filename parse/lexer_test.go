@@ -93,6 +93,46 @@ func TestLexer(t *testing.T) {
 				{itemEOF, ""},
 			},
 		},
+		{
+			query: `foo>3`,
+			expected: []item{
+				{itemAnd, ""},
+				{itemField, "foo"}, {itemOperator, ">"}, {itemNumber, "3"},
+				{itemEOF, ""},
+			},
+		},
+		{
+			query: `foo>=3`,
+			expected: []item{
+				{itemAnd, ""},
+				{itemField, "foo"}, {itemOperator, ">="}, {itemNumber, "3"},
+				{itemEOF, ""},
+			},
+		},
+		{
+			query: `foo<3`,
+			expected: []item{
+				{itemAnd, ""},
+				{itemField, "foo"}, {itemOperator, "<"}, {itemNumber, "3"},
+				{itemEOF, ""},
+			},
+		},
+		{
+			query: `foo<=3`,
+			expected: []item{
+				{itemAnd, ""},
+				{itemField, "foo"}, {itemOperator, "<="}, {itemNumber, "3"},
+				{itemEOF, ""},
+			},
+		},
+		{
+			query: `ts>"2019-03-02"`,
+			expected: []item{
+				{itemAnd, ""},
+				{itemField, "ts"}, {itemOperator, ">"}, {itemString, `"2019-03-02"`},
+				{itemEOF, ""},
+			},
+		},
 		// {
 		//  query: `NOT foo:3`,
 		//  expected: []item{

@@ -2,6 +2,7 @@ package expr
 
 import (
 	"strings"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -25,12 +26,12 @@ func IDParam(name string, opts ...ParamOption) *Filter {
 			switch v := value.(type) {
 			case *parse.NumberNode:
 				if v.Val < 0 {
-					return 0, status.Errorf(codes.InvalidArgument, "id field cannot be negative: %v: %d", name, v.Val)
+					return nil, status.Errorf(codes.InvalidArgument, "id field cannot be negative: %v: %d", name, v.Val)
 				}
 				return v.Val, nil
 
 			default:
-				return 0, status.Errorf(codes.InvalidArgument, "id fields can only be filtered with numbers: %v: %s", name, value)
+				return nil, status.Errorf(codes.InvalidArgument, "id fields require numeric filters: %v: %v", name, value)
 			}
 		},
 	}
@@ -44,15 +45,15 @@ func EnumParam(name string, values map[string]int32, opts ...ParamOption) *Filte
 			switch v := value.(type) {
 			case *parse.ConstantNode:
 				if strings.HasSuffix(v.Name, "_UNKNOWN") {
-					return "", status.Errorf(codes.InvalidArgument, "enum fields cannot be filtered by the unknown value: %v: %s", name, value)
+					return nil, status.Errorf(codes.InvalidArgument, "enum fields cannot be filtered by the unknown value: %v: %s", name, v.Name)
 				}
 				if _, ok := values[v.Name]; !ok {
-					return "", status.Errorf(codes.InvalidArgument, "unknown enum field value: %v: %s", name, value)
+					return nil, status.Errorf(codes.InvalidArgument, "unknown enum field value: %v: %s", name, v.Name)
 				}
 				return v.Name, nil
 
 			default:
-				return "", status.Errorf(codes.InvalidArgument, "enum fields can only be filtered with constants: %v: %s", name, value)
+				return nil, status.Errorf(codes.InvalidArgument, "enum fields require constants filters: %v: %v", name, value)
 			}
 		},
 	}
@@ -71,10 +72,10 @@ func BoolParam(name string, opts ...ParamOption) *Filter {
 				case "false":
 					return false, nil
 				}
-				return false, status.Errorf(codes.InvalidArgument, "boolean fields should be either true or false: %v: %s", name, value)
+				return nil, status.Errorf(codes.InvalidArgument, "boolean fields should be either true or nil: %v: %s", name, v.Name)
 
 			default:
-				return false, status.Errorf(codes.InvalidArgument, "boolean fields can only be filtered with booleans: %v: %s", name, value)
+				return nil, status.Errorf(codes.InvalidArgument, "boolean fields require boolean filters: %v: %v", name, value)
 			}
 		},
 	}
@@ -83,9 +84,27 @@ func BoolParam(name string, opts ...ParamOption) *Filter {
 func TimestampParam(name string, opts ...ParamOption) *Filter {
 	return &Filter{
 		name:      name,
-		operators: []parse.Operator{parse.OpExists},
+		operators: []parse.Operator{parse.OpExists, parse.OpGreaterThan, parse.OpGreaterOrEqualThan, parse.OpLessThan, parse.OpLessOrEqualThan},
 		eval: func(value parse.Node) (interface{}, error) {
-			return nil, nil
+			switch v := value.(type) {
+			case *parse.StringNode:
+				if len(v.Unquoted()) == len("2006-01-02") {
+					t, err := time.Parse("2006-01-02", v.Unquoted())
+					if err != nil {
+						return nil, status.Errorf(codes.InvalidArgument, "invalid date: %v: %v", v.Unquoted(), err)
+					}
+					return t, err
+				}
+
+				t, err := time.Parse(time.RFC3339, v.Unquoted())
+				if err != nil {
+					return nil, status.Errorf(codes.InvalidArgument, "invalid rfc3339 timestamp: %v: %v", v.Unquoted(), err)
+				}
+				return t, err
+
+			default:
+				return nil, status.Errorf(codes.InvalidArgument, "timestamp fields require string filters: %v: %v", name, value)
+			}
 		},
 	}
 }

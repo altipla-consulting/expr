@@ -53,8 +53,11 @@ func (fs Filters) parseQuery(query string) (*parse.AndNode, map[string]*Filter, 
 			return nil, nil, status.Errorf(codes.InvalidArgument, "operator not allowed for field %v: %q", expr.Field.Name, expr.Op.Val)
 		}
 
-		if _, err := f.eval(expr.Val); err != nil {
-			return nil, nil, errors.Trace(err)
+		// Validamos que el argumento es legible si tiene.
+		if expr.Op.Val.HasArg() {
+			if _, err := f.eval(expr.Val); err != nil {
+				return nil, nil, errors.Trace(err)
+			}
 		}
 
 		present[expr.Field.Name] = true
@@ -105,7 +108,7 @@ func evalSQL(root *parse.AndNode, filters map[string]*Filter) (*sqlCondition, er
 				conds = append(conds, fmt.Sprintf("(%s IS NOT NULL)", sqlizeName(expr.Field.Name)))
 			}
 
-		case parse.OpEqual, parse.OpNotEqual:
+		case parse.OpEqual, parse.OpNotEqual, parse.OpGreaterThan, parse.OpGreaterOrEqualThan, parse.OpLessThan, parse.OpLessOrEqualThan:
 			val, err := filters[expr.Field.Name].eval(expr.Val)
 			if err != nil {
 				return nil, errors.Trace(err)
@@ -152,6 +155,14 @@ func (fs Filters) Matcher(query string) (Matcher, error) {
 		return nil, errors.Trace(err)
 	}
 
+	for _, expr := range root.Nodes {
+		switch expr.Op.Val {
+		case parse.OpEqual, parse.OpNotEqual, parse.OpContains, parse.OpExists:
+		default:
+			return nil, errors.Errorf("cannot use operator in matcher queries: %v", expr.Op.Val)
+		}
+	}
+
 	return func(value map[string]interface{}) bool {
 		for _, expr := range root.Nodes {
 			// Podemos ignorar el error porque ya se comprueban antes al parsear la query.
@@ -174,6 +185,8 @@ func (fs Filters) Matcher(query string) (Matcher, error) {
 				result = strings.Contains(got.(string), want.(string))
 			case parse.OpExists:
 				result = exists
+			default:
+				panic("should not reach here")
 			}
 
 			// Si no encontramos lo que necesitamos podemos parar de comprobar

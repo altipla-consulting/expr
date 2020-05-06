@@ -62,6 +62,16 @@ func TestEvalSQL(t *testing.T) {
 			expected: `(bool_uppercase = ?)`,
 			vals:     []interface{}{true},
 		},
+		{
+			query:    `ts>"2019-03-02"`,
+			expected: `(ts > ?)`,
+			vals:     []interface{}{time.Date(2019, time.March, 2, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			query:    `ts>"2019-03-02T14:15:16Z"`,
+			expected: `(ts > ?)`,
+			vals:     []interface{}{time.Date(2019, time.March, 2, 14, 15, 16, 0, time.UTC)},
+		},
 	}
 	for i, test := range tests {
 		root, filters, err := filters.parseQuery(test.query)

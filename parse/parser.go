@@ -126,11 +126,12 @@ func (p *parser) parseExpr() *ExprNode {
 	}
 
 	// Operadores que no tienen argumentos adicionales.
-	if expr.Op.Val == OpExists {
+	if !expr.Op.Val.HasArg() {
 		return expr
 	}
 
-	// Operadores con argumentos de varios posibles tipos.
+	// Operadores con argumentos de varios posibles tipos. Aquí no se comprueba
+	// el tipo, solamente se lee lo que haya y se guarda en la expresión.
 	switch tok := p.next(); tok.typ {
 	case itemNumber:
 		val, err := strconv.ParseInt(tok.val, 10, 64)
