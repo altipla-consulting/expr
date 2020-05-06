@@ -108,3 +108,22 @@ func TimestampParam(name string, opts ...ParamOption) *Filter {
 		},
 	}
 }
+
+func StringParam(name string, opts ...ParamOption) *Filter {
+	return &Filter{
+		name:      name,
+		operators: []parse.Operator{parse.OpEqual, parse.OpNotEqual, parse.OpContains},
+		eval: func(value parse.Node) (interface{}, error) {
+			switch v := value.(type) {
+			case *parse.ConstantNode:
+				return v.Name, nil
+
+			case *parse.StringNode:
+				return v.Unquoted(), nil
+
+			default:
+				return nil, status.Errorf(codes.InvalidArgument, "string fields require string filters: %v: %v", name, value)
+			}
+		},
+	}
+}

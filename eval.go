@@ -121,6 +121,19 @@ func evalSQL(root *parse.AndNode, filters map[string]*Filter) (*sqlCondition, er
 			conds = append(conds, fmt.Sprintf("(%s%s %s ?)", not, sqlizeName(expr.Field.Name), expr.Op.Val))
 			vals = append(vals, val)
 
+		case parse.OpContains:
+			val, err := filters[expr.Field.Name].eval(expr.Val)
+			if err != nil {
+				return nil, errors.Trace(err)
+			}
+
+			var not string
+			if expr.Negative {
+				not = "NOT "
+			}
+			conds = append(conds, fmt.Sprintf("(%s%s LIKE ?)", not, sqlizeName(expr.Field.Name)))
+			vals = append(vals, "%"+database.EscapeLike(val.(string))+"%")
+
 		default:
 			return nil, errors.Errorf("cannot use operator in SQL queries: %v", expr.Op.Val)
 		}

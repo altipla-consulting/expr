@@ -15,6 +15,7 @@ func TestEvalSQL(t *testing.T) {
 		EnumParam("enum", pb.FooEnum_value),
 		TimestampParam("ts"),
 		BoolParam("boolUppercase"),
+		StringParam("str"),
 	}
 
 	tests := []struct {
@@ -71,6 +72,26 @@ func TestEvalSQL(t *testing.T) {
 			query:    `ts>"2019-03-02T14:15:16Z"`,
 			expected: `(ts > ?)`,
 			vals:     []interface{}{time.Date(2019, time.March, 2, 14, 15, 16, 0, time.UTC)},
+		},
+		{
+			query:    `str="foo"`,
+			expected: `(str = ?)`,
+			vals:     []interface{}{"foo"},
+		},
+		{
+			query:    `str=foo`,
+			expected: `(str = ?)`,
+			vals:     []interface{}{"foo"},
+		},
+		{
+			query:    `str:foo`,
+			expected: `(str LIKE ?)`,
+			vals:     []interface{}{"%foo%"},
+		},
+		{
+			query:    `str:"foo%bar"`,
+			expected: `(str LIKE ?)`,
+			vals:     []interface{}{`%foo\%bar%`},
 		},
 	}
 	for i, test := range tests {
